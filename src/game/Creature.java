@@ -133,6 +133,19 @@ public class Creature {
 		
 		Tile tile = world.tile(x+mx, y+my, z+mz);
 		
+		upOrDown(mz, tile);
+		
+		Creature other = world.creature(x+mx, y+my, z+mz);
+		
+		modifyFood(-1);
+		
+		if (other == null)
+			ai.onEnter(x+mx, y+my, z+mz, tile);
+		else
+			meleeAttack(other);
+	}
+	
+	private void upOrDown(int mz, Tile tile) {
 		if (mz == -1){
 			if (tile == Tile.STAIRS_DOWN) {
 				doAction("walk up the stairs to level %d", z+mz+1);
@@ -148,15 +161,6 @@ public class Creature {
 				return;
 			}
 		}
-		
-		Creature other = world.creature(x+mx, y+my, z+mz);
-		
-		modifyFood(-1);
-		
-		if (other == null)
-			ai.onEnter(x+mx, y+my, z+mz, tile);
-		else
-			meleeAttack(other);
 	}
 
 	public void meleeAttack(Creature other){
@@ -457,15 +461,7 @@ public class Creature {
 	}
 	
 	public void equip(Item item){
-		if (!inventory.contains(item)) {
-			if (inventory.isFull()) {
-				notify("Can't equip %s since you're holding too much stuff.", nameOf(item));
-				return;
-			} else {
-				world.remove(item);
-				inventory.add(item);
-			}
-		}
+		verifyEquip(item);
 		
 		if (item.attackValue() == 0 && item.rangedAttackValue() == 0 && item.defenseValue() == 0)
 			return;
@@ -478,6 +474,17 @@ public class Creature {
 			unequip(armor);
 			doAction("put on a " + nameOf(item));
 			armor = item;
+		}
+	}
+	private void verifyEquip(Item item) {
+		if (!inventory.contains(item)) {
+			if (inventory.isFull()) {
+				notify("Can't equip %s since you're holding too much stuff.", nameOf(item));
+				return;
+			} else {
+				world.remove(item);
+				inventory.add(item);
+			}
 		}
 	}
 	
